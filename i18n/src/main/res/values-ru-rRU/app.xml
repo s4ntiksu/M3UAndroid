@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_label_crash">Произошел сбой приложения</string>
+    <string name="app_shortcut_stream_recently_short_label">Недавние</string>
+    <string name="app_shortcut_stream_recently_long_label">Воспроизвести недавний поток</string>
+    <string name="app_shortcut_stream_recently_disabled">Недоступно</string>
+</resources>
