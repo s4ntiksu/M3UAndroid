@@ -8,6 +8,6 @@
     <string name="data_worker_subscription_action_cancel">Отмена</string>
     <string name="data_worker_subscription_action_retry">Повторить</string>
     <string name="data_worker_subscription_content_completed">Прошло (+%d)</string>
-    <string name="data_worker_subscription_content_channel_progress">%d каналов загружены</string>
-    <string name="data_worker_subscription_content_programme_progress">%d программы передач загружены</string>
+    <string name="data_worker_subscription_content_channel_progress">%d каналов загружено</string>
+    <string name="data_worker_subscription_content_programme_progress">%d программы передач загружено</string>
 </resources>
