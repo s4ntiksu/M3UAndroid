@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feat_playlist_configuration_title">title</string>
+    <string name="feat_playlist_configuration_user_agent">User Agent</string>
+    <string name="feat_playlist_configuration_enabled_epgs">Включить программу передач</string>
+    <string name="feat_playlist_configuration_sync_programmes">Синхронизировать программу передач</string>
+    <string name="feat_playlist_configuration_programmes_expired_time">Осталось: %s</string>
+    <string name="feat_playlist_configuration_programmes_expired">Программа передач сохранена во внутренюю память</string>
+</resources>
