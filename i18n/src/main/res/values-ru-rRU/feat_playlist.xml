@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feat_playlist_scheme_unknown">Неизвестен</string>
+    <string name="feat_playlist_scheme_unknown">неизвестен</string>
     <string name="feat_playlist_dialog_favourite_title">нравится</string>
     <string name="feat_playlist_dialog_favourite_cancel_title">не нравится</string>
     <string name="feat_playlist_dialog_hide_title">скрыть</string>
     <string name="feat_playlist_dialog_save_picture_title">сохранено в галерею</string>
     <string name="feat_playlist_dialog_create_shortcut_title">создать ярлык</string>
-    <string name="feat_playlist_error_playlist_not_found">плейлист не существует (%s)</string>
+    <string name="feat_playlist_error_playlist_not_found">плейлист не найден (%s)</string>
     <string name="feat_playlist_query_placeholder">введите ключевое слово</string>
-    <string name="feat_playlist_error_playlist_url_not_found">плейлист из ссылки не существует</string>
-    <string name="feat_playlist_error_stream_cover_not_found">обложка не существует</string>
-    <string name="feat_playlist_error_stream_not_found">stream is not existed</string>
+    <string name="feat_playlist_error_playlist_url_not_found">плейлист из ссылки отсутствует</string>
+    <string name="feat_playlist_error_stream_cover_not_found">обложка отсутствует</string>
+    <string name="feat_playlist_error_stream_not_found">поток отсутствует</string>
     <string name="feat_playlist_success_save_cover">сохранено в (%s)</string>
     <string name="feat_playlist_scroll_up">пролистать выше</string>
 </resources>
