@@ -2,12 +2,12 @@
 <resources>
     <string name="data_error_file_not_found">Файл не найден</string>
     <string name="data_error_empty_title">Плейлист пуст</string>
-    <string name="data_channel_name_stream_download_service">Сервис загрузки потока</string>
+    <string name="data_channel_name_stream_download_service">Загрузчик потока</string>
     <string name="data_channel_description_stream_download_service">Описание потока</string>
 
     <string name="data_worker_subscription_action_cancel">Отмена</string>
     <string name="data_worker_subscription_action_retry">Повторить</string>
     <string name="data_worker_subscription_content_completed">Прошло (+%d)</string>
     <string name="data_worker_subscription_content_channel_progress">%d каналов загружено</string>
-    <string name="data_worker_subscription_content_programme_progress">%d программы передач загружено</string>
+    <string name="data_worker_subscription_content_programme_progress">%d программ передач загружено</string>
 </resources>
