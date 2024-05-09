@@ -6,7 +6,7 @@
     <string name="feat_foryou_rename_playlist">Переименовать</string>
     <string name="feat_foryou_imported_playlist_title">Импортировано</string>
     <string name="feat_foryou_prompt_add_playlist">Добавить плейлист</string>
-    <string name="feat_foryou_recommend_unseen_label">Здесь можно увидеть добавленное вами в избранном</string>
+    <string name="feat_foryou_recommend_unseen_label">Здесь можно увидеть добавленное вами избранный контент</string>
     <string name="feat_foryou_recommend_unseen_more_than_days">ещё %d дней</string>
     <string name="feat_foryou_recommend_unseen_days">%d дней</string>
     <string name="feat_foryou_recommend_unseen_hours">%d часов</string>
