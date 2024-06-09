@@ -36,9 +36,8 @@
 
     <string name="feat_setting_full_info_player">Доп. информация в плеере</string>
     <string name="feat_setting_full_info_player_description">Отображает дополнительную информацию</string>
-    <string name="feat_setting_progress"></string>
-    <string name="feat_setting_initial_screen">initial </string>
-    <string name="feat_setting_no_picture_mode">no picture mode</string>
+    <string name="feat_setting_initial_screen">Инициализировать</string>
+    <string name="feat_setting_no_picture_mode">Режим "Нет изображения"</string>
     <string name="feat_setting_no_picture_mode_description">may improve performance</string>
     <string name="feat_setting_system_setting">Системные настройки</string>
     <string name="feat_setting_script_management_import_js">Импортировать JavaScript</string>
@@ -69,27 +68,27 @@
     <string name="feat_setting_appearance_hint_edit_color">Удерживайте для изменения цвета</string>
 
     <string name="feat_setting_tunneling">Режим туннелирования</string>
-    <string name="feat_setting_tunneling_description">improve playback of 4K/HDR content</string>
+    <string name="feat_setting_tunneling_description">Улучшение воспроизведения HDR/4K потоков </string>
     <string name="feat_setting_label_backup">Резервное копирование</string>
     <string name="feat_setting_label_restore">Восстановить</string>
 
-    <string name="feat_setting_canvas_dark">dark</string>
-    <string name="feat_setting_canvas_light">light</string>
-    <string name="feat_setting_canvas_apply">apply</string>
-    <string name="feat_setting_canvas_reset">reset</string>
+    <string name="feat_setting_canvas_dark">Темный</string>
+    <string name="feat_setting_canvas_light">Светлый</string>
+    <string name="feat_setting_canvas_apply">Применить</string>
+    <string name="feat_setting_canvas_reset">Сбросить</string>
 
-    <string name="feat_setting_epg_clock_mode">epg 12h clock mode</string>
+    <string name="feat_setting_epg_clock_mode">12-часовой формат в программе передач</string>
 
-    <string name="feat_setting_remote_control">remote control</string>
-    <string name="feat_setting_remote_control_description">turn on the ability to remotely control your TV</string>
+    <string name="feat_setting_remote_control">Дистанционное управление</string>
+    <string name="feat_setting_remote_control_description">Включает возможность управлять вашим телевизором с помощью устройств</string>
 
-    <string name="feat_setting_remote_control_tv_side">remote control</string>
-    <string name="feat_setting_remote_control_tv_side_description">allow smartphones to control your TV</string>
+    <string name="feat_setting_remote_control_tv_side">Дистанционное управление</string>
+    <string name="feat_setting_remote_control_tv_side_description">Разрешает устройствам управлять вашим телевизором</string>
 
-    <string name="feat_setting_subscribe_for_tv">for television</string>
+    <string name="feat_setting_subscribe_for_tv">Для телевидения</string>
 
-    <string name="feat_setting_backing_up">backing up all playlists and channels</string>
-    <string name="feat_setting_restoring">restoring all playlists and channels</string>
+    <string name="feat_setting_backing_up">Сохранить все плейлисты и каналы</string>
+    <string name="feat_setting_restoring">Восстановить плейлисты и каналы</string>
 
     <string name="feat_setting_follow_system_theme">follow system theme</string>
 
