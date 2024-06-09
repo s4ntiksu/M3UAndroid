@@ -17,7 +17,7 @@
     <string name="feat_setting_god_mode_description">aranjare ecran cu tastele fizice de volum</string>
     <string name="feat_setting_experimental_mode">mod experimental</string>
     <string name="feat_setting_experimental_mode_description">functionalitati instabile care pot genera erori fatale</string>
-    <string name="feat_setting_label_hidden_streams">canale ascunse</string>
+    <string name="feat_setting_label_hidden_channels">canale ascunse</string>
     <string name="feat_setting_label_add_playlist">adauga lista</string>
     <string name="feat_setting_label_parse_from_clipboard">incarca din clipboard</string>
     <string name="feat_setting_label_select_from_local_storage">selectie fisier</string>
@@ -26,15 +26,15 @@
     <string name="feat_setting_clip_mode_adaptive">adaptiv</string>
     <string name="feat_setting_clip_mode_clip">incadrare</string>
     <string name="feat_setting_clip_mode_stretched">tot ecranul</string>
-    <string name="feat_setting_auto_refresh">actualizare automata</string>
-    <string name="feat_setting_auto_refresh_description">actualizare automata la deschidere lista</string>
+    <string name="feat_setting_auto_refresh_channels">actualizare automata</string>
+    <string name="feat_setting_auto_refresh_channels_description">actualizare automata la deschidere lista</string>
 
     <string name="feat_setting_always_television">mod permanent televizor</string>
     <string name="feat_setting_always_television_description">se va restaura la repornirea aplicatiei</string>
 
     <string name="feat_setting_full_info_player">informatii complete</string>
     <string name="feat_setting_full_info_player_description">arata mai multe informatii in player</string>
-    <string name="feat_setting_progress">bara de cautare</string>
+    <string name="feat_setting_slider">bara de cautare</string>
     <string name="feat_setting_initial_screen">ecranul de pornire</string>
     <string name="feat_setting_no_picture_mode">fara logo canale</string>
     <string name="feat_setting_no_picture_mode_description">poate imbunatati performanta</string>

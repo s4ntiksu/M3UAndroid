@@ -1,13 +1,19 @@
 package com.m3u.material.ktx
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import com.m3u.material.model.LocalSpacing
 import com.m3u.material.model.asTvScheme
 import com.m3u.material.model.asTvTypography
+import androidx.tv.material3.MaterialTheme as TvMaterialTheme
 
 val LocalAlwaysTelevision = compositionLocalOf { false }
 
@@ -15,26 +21,56 @@ val LocalAlwaysTelevision = compositionLocalOf { false }
 fun isTelevision(): Boolean {
     val alwaysTelevision = LocalAlwaysTelevision.current
     return if (alwaysTelevision) true
-    else LocalConfiguration.current.isTelevision()
+    else {
+        LocalConfiguration.current.run {
+            val type = uiMode and Configuration.UI_MODE_TYPE_MASK
+            return type == Configuration.UI_MODE_TYPE_TELEVISION
+        }
+    }
 }
 
-fun Configuration.isTelevision(): Boolean {
-    val type = uiMode and Configuration.UI_MODE_TYPE_MASK
-    return type == Configuration.UI_MODE_TYPE_TELEVISION
+/**
+ * Check current Platform and apply new colorScheme.
+ * @param fallback apply std material3 MaterialTheme as well.
+ */
+@Composable
+internal fun PlatformTheme(
+    colorScheme: ColorScheme = MaterialTheme.colorScheme,
+    typography: Typography = MaterialTheme.typography,
+    fallback: Boolean = true,
+    block: @Composable () -> Unit
+) {
+    val tv = isTelevision()
+    val car = false
+    val content = @Composable {
+        when {
+            tv -> {
+                TvMaterialTheme(
+                    colorScheme = remember(colorScheme) { colorScheme.asTvScheme() },
+                    typography = remember(typography) { typography.asTvTypography() }
+                ) {
+                    block()
+                }
+            }
+
+            car -> throw UnsupportedOperationException()
+            else -> block()
+        }
+    }
+    val commonPlatform = !tv && !car
+    if (commonPlatform || fallback) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = typography
+        ) {
+            content()
+        }
+    } else {
+        content()
+    }
 }
 
 @Composable
-fun TelevisionChain(block: @Composable () -> Unit) {
-    if (!isTelevision()) {
-        block()
-        return
-    }
-    val scheme = MaterialTheme.colorScheme
-    val typography = MaterialTheme.typography
-    androidx.tv.material3.MaterialTheme(
-        colorScheme = remember(scheme) { scheme.asTvScheme() },
-        typography = remember(typography) { typography.asTvTypography() }
-    ) {
-        block()
-    }
+fun Modifier.includeChildGlowPadding(): Modifier = thenIf(isTelevision()) {
+    Modifier.padding(LocalSpacing.current.medium)
 }

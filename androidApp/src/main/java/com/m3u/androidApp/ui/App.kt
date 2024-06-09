@@ -123,7 +123,7 @@ private fun AppImpl(
 
     val tv = isTelevision()
 
-    AppScaffold(
+    Scaffold(
         rootDestination = rootDestination,
         onBackPressed = onBackPressed,
         navigateToRoot = navigateToRoot,
@@ -132,7 +132,6 @@ private fun AppImpl(
             .then(modifier),
     ) { contentPadding ->
         AppNavHost(
-            currentDestination = { rootDestination },
             navigateToRoot = navigateToRoot,
             contentPadding = contentPadding,
             modifier = Modifier.fillMaxSize()

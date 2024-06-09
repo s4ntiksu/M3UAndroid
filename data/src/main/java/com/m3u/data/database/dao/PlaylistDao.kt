@@ -6,9 +6,10 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import com.m3u.data.database.model.DataSource
 import com.m3u.data.database.model.Playlist
 import com.m3u.data.database.model.PlaylistWithCount
-import com.m3u.data.database.model.PlaylistWithStreams
+import com.m3u.data.database.model.PlaylistWithChannels
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -26,7 +27,10 @@ internal interface PlaylistDao {
     suspend fun deleteByUrl(url: String)
 
     @Query("SELECT * FROM playlists WHERE url = :url")
-    suspend fun getByUrl(url: String): Playlist?
+    suspend fun get(url: String): Playlist?
+
+    @Query("SELECT * FROM playlists WHERE source = :source")
+    suspend fun getBySource(source: DataSource): List<Playlist>
 
     @Query("SELECT * FROM playlists ORDER BY title")
     fun observeAll(): Flow<List<Playlist>>
@@ -39,21 +43,24 @@ internal interface PlaylistDao {
 
     @Transaction
     @Query("SELECT * FROM playlists ORDER BY title")
-    fun observeAllWithStreams(): Flow<List<PlaylistWithStreams>>
+    fun observeAllWithChannels(): Flow<List<PlaylistWithChannels>>
 
     @Query("SELECT * FROM playlists ORDER BY title")
     suspend fun getAll(): List<Playlist>
 
+    @Query("SELECT * FROM playlists WHERE auto_refresh_programmes = 1 ORDER BY title")
+    suspend fun getAllAutoRefresh(): List<Playlist>
+
     @Transaction
     @Query("SELECT * FROM playlists ORDER BY title")
-    suspend fun getAllWithStreams(): List<PlaylistWithStreams>
+    suspend fun getAllWithChannels(): List<PlaylistWithChannels>
 
     @Query("SELECT * FROM playlists WHERE url = :url ORDER BY title")
     fun observeByUrl(url: String): Flow<Playlist?>
 
     @Transaction
     @Query("SELECT * FROM playlists WHERE url = :url ORDER BY title")
-    fun observeByUrlWithStreams(url: String): Flow<PlaylistWithStreams?>
+    fun observeByUrlWithChannels(url: String): Flow<PlaylistWithChannels?>
 
     @Transaction
     @Query(
@@ -69,14 +76,14 @@ internal interface PlaylistDao {
 
     @Transaction
     @Query("SELECT * FROM playlists WHERE url = :url ORDER BY title")
-    suspend fun getByUrlWithStreams(url: String): PlaylistWithStreams?
+    suspend fun getByUrlWithChannels(url: String): PlaylistWithChannels?
 
     @Query("UPDATE playlists SET title = :target WHERE url = :url")
     suspend fun updateTitle(url: String, target: String)
 
     @Transaction
     suspend fun updateUrl(oldUrl: String, newUrl: String) {
-        val playlist = getByUrl(oldUrl) ?: return
+        val playlist = get(oldUrl) ?: return
         insertOrReplace(
             playlist.copy(
                 url = newUrl
@@ -88,7 +95,7 @@ internal interface PlaylistDao {
 
     @Transaction
     suspend fun updatePinnedCategories(url: String, updater: (List<String>) -> List<String>) {
-        val playlist = getByUrl(url) ?: return
+        val playlist = get(url) ?: return
         insertOrReplace(
             playlist.copy(
                 pinnedCategories = updater(playlist.pinnedCategories)
@@ -98,7 +105,7 @@ internal interface PlaylistDao {
 
     @Transaction
     suspend fun updateEpgUrls(url: String, updater: (List<String>) -> List<String>) {
-        val playlist = getByUrl(url) ?: return
+        val playlist = get(url) ?: return
         insertOrReplace(
             playlist.copy(
                 epgUrls = updater(playlist.epgUrls)
@@ -108,7 +115,7 @@ internal interface PlaylistDao {
 
     @Transaction
     suspend fun hideOrUnhideCategory(url: String, category: String) {
-        val playlist = getByUrl(url) ?: return
+        val playlist = get(url) ?: return
         val prev = playlist.hiddenCategories
         insertOrReplace(
             playlist.copy(
@@ -120,7 +127,7 @@ internal interface PlaylistDao {
 
     @Transaction
     suspend fun updateUserAgent(url: String, userAgent: String?) {
-        val playlist = getByUrl(url) ?: return
+        val playlist = get(url) ?: return
         insertOrReplace(
             playlist.copy(
                 userAgent = userAgent
@@ -138,4 +145,10 @@ internal interface PlaylistDao {
             }
         }
     }
+
+    @Query("UPDATE playlists SET auto_refresh_programmes = :autoRefreshProgrammes WHERE url = :playlistUrl")
+    suspend fun updatePlaylistAutoRefreshProgrammes(
+        playlistUrl: String,
+        autoRefreshProgrammes: Boolean
+    )
 }

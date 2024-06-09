@@ -21,7 +21,7 @@
     <string name="feat_setting_experimental_mode">试验特性</string>
     <string name="feat_setting_experimental_mode_description">不稳定的功能可能引发致命错误</string>
     <string name="feat_setting_label_epg_playlists">EPG 列表</string>
-    <string name="feat_setting_label_hidden_streams">屏蔽的频道</string>
+    <string name="feat_setting_label_hidden_channels">屏蔽的频道</string>
     <string name="feat_setting_label_hidden_playlist_groups">屏蔽的播放列表分类</string>
     <string name="feat_setting_label_add_playlist">新增订阅</string>
     <string name="feat_setting_label_parse_from_clipboard">解析剪贴板</string>
@@ -31,8 +31,8 @@
     <string name="feat_setting_clip_mode_adaptive">自适应</string>
     <string name="feat_setting_clip_mode_clip">裁剪</string>
     <string name="feat_setting_clip_mode_stretched">拉伸</string>
-    <string name="feat_setting_auto_refresh">自动刷新</string>
-    <string name="feat_setting_auto_refresh_description">进入播放列表自动刷新</string>
+    <string name="feat_setting_auto_refresh_channels">自动刷新频道</string>
+    <string name="feat_setting_auto_refresh_channels_description">进入播放列表自动刷新</string>
 
     <string name="feat_setting_always_television">电视模式</string>
     <string name="feat_setting_always_television_description">会在应用重启时恢复</string>
@@ -40,7 +40,7 @@
     <string name="feat_setting_full_info_player">详细信息的播放器</string>
     <string name="feat_setting_full_info_player_description">播放器中展示更多的信息</string>
 
-    <string name="feat_setting_progress">拖动条</string>
+    <string name="feat_setting_slider">拖动条</string>
 
     <string name="feat_setting_initial_screen">初始界面</string>
     <string name="feat_setting_no_picture_mode">无图模式</string>
@@ -55,6 +55,8 @@
     <string name="feat_setting_error_blank_url">目标地址为空</string>
     <string name="feat_setting_use_dynamic_colors">动态配色</string>
     <string name="feat_setting_use_dynamic_colors_unavailable">仅在 Android 12 及更高版本可用</string>
+    <string name="feat_setting_colorful_background">炫彩背景</string>
+    <string name="feat_setting_restore_schemes">恢复主题</string>
     <string name="feat_setting_not_implementation">此功能当前版本不可用</string>
     <string name="feat_setting_zapping_mode">换台模式</string>
     <string name="feat_setting_zapping_mode_description">开启小窗预览而不是直接播放</string>
@@ -82,6 +84,8 @@
     <string name="feat_setting_canvas_light">日间</string>
     <string name="feat_setting_canvas_apply">应用</string>
     <string name="feat_setting_canvas_reset">重制</string>
+
+    <string name="feat_setting_epg_clock_mode">12小时制节目单</string>
 
     <string name="feat_setting_remote_control">遥控器</string>
     <string name="feat_setting_remote_control_description">开启遥控电视的能力</string>

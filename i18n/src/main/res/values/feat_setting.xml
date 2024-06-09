@@ -18,7 +18,7 @@
     <string name="feat_setting_experimental_mode">experimental mode</string>
     <string name="feat_setting_experimental_mode_description">unstable features can throw fatal errors</string>
     <string name="feat_setting_label_epg_playlists">EPG List</string>
-    <string name="feat_setting_label_hidden_streams">hidden streams</string>
+    <string name="feat_setting_label_hidden_channels">hidden channels</string>
     <string name="feat_setting_label_hidden_playlist_groups">hidden playlist categories</string>
     <string name="feat_setting_label_add_playlist">add playlist</string>
     <string name="feat_setting_label_parse_from_clipboard">parse clipboard</string>
@@ -28,15 +28,15 @@
     <string name="feat_setting_clip_mode_adaptive">adaptive</string>
     <string name="feat_setting_clip_mode_clip">clip</string>
     <string name="feat_setting_clip_mode_stretched">stretched</string>
-    <string name="feat_setting_auto_refresh">auto refresh</string>
-    <string name="feat_setting_auto_refresh_description">automatically refreshed when enter the playlist</string>
+    <string name="feat_setting_auto_refresh_channels">auto refresh channels</string>
+    <string name="feat_setting_auto_refresh_channels_description">automatically refreshed when enter the channel</string>
 
     <string name="feat_setting_always_television">always television</string>
     <string name="feat_setting_always_television_description">will be restored when the app is restarted</string>
 
     <string name="feat_setting_full_info_player">full information player</string>
     <string name="feat_setting_full_info_player_description">display more information in the player</string>
-    <string name="feat_setting_progress">seek bar</string>
+    <string name="feat_setting_slider">slider</string>
     <string name="feat_setting_initial_screen">initial Screen</string>
     <string name="feat_setting_no_picture_mode">no picture mode</string>
     <string name="feat_setting_no_picture_mode_description">may improve performance</string>
@@ -50,16 +50,18 @@
     <string name="feat_setting_error_blank_url">blank url</string>
     <string name="feat_setting_use_dynamic_colors">dynamic colors</string>
     <string name="feat_setting_use_dynamic_colors_unavailable">it is available on Android 12 and above</string>
+    <string name="feat_setting_colorful_background">colorful background</string>
+    <string name="feat_setting_restore_schemes">restore schemes</string>
     <string name="feat_setting_not_implementation">this feature is not available for current version</string>
     <string name="feat_setting_zapping_mode">zapping mode</string>
-    <string name="feat_setting_zapping_mode_description">quick preview before playing stream</string>
+    <string name="feat_setting_zapping_mode_description">quick preview before playing channel</string>
     <string name="feat_setting_gesture_brightness">brightness gesture</string>
     <string name="feat_setting_gesture_volume">volume gesture</string>
     <string name="feat_setting_screencast">screencast</string>
     <string name="feat_setting_screen_rotating">screen rotating</string>
     <string name="feat_setting_screen_rotating_description">available when system rotating is unlocked</string>
     <string name="feat_setting_optional_player_features">optional player features</string>
-    <string name="feat_setting_unseen_limit">recommend long-unseen favorite streams</string>
+    <string name="feat_setting_unseen_limit">recommend long-unseen favorite channels</string>
     <string name="feat_setting_reconnect_mode">auto reconnect</string>
     <string name="feat_setting_reconnect_mode_no">never</string>
     <string name="feat_setting_reconnect_mode_retry">only when failed</string>
@@ -78,7 +80,7 @@
     <string name="feat_setting_canvas_apply">apply</string>
     <string name="feat_setting_canvas_reset">reset</string>
 
-    <string name="feat_setting_epg_clock_mode">epg 12h clock mode</string>
+    <string name="feat_setting_epg_clock_mode">programme 12h clock mode</string>
 
     <string name="feat_setting_remote_control">remote control</string>
     <string name="feat_setting_remote_control_description">turn on the ability to remotely control your TV</string>

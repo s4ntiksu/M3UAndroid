@@ -6,12 +6,12 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.m3u.data.database.dao.ColorPackDao
+import com.m3u.data.database.dao.ColorSchemeDao
 import com.m3u.data.database.dao.EpisodeDao
 import com.m3u.data.database.dao.PlaylistDao
 import com.m3u.data.database.dao.ProgrammeDao
-import com.m3u.data.database.dao.StreamDao
-import com.m3u.data.database.example.ColorPackExample
+import com.m3u.data.database.dao.ChannelDao
+import com.m3u.data.database.example.ColorSchemeExample
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,7 +36,7 @@ internal object DatabaseModule {
             object : RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
-                    ColorPackExample.invoke(db)
+                    ColorSchemeExample.invoke(db)
                 }
             }
         )
@@ -48,9 +48,9 @@ internal object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideStreamDao(
+    fun provideChannelDao(
         database: M3UDatabase
-    ): StreamDao = database.streamDao()
+    ): ChannelDao = database.channelDao()
 
     @Provides
     @Singleton
@@ -72,7 +72,7 @@ internal object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideColorPackDao(
+    fun provideColorSchemeDao(
         database: M3UDatabase
-    ): ColorPackDao = database.colorPackDao()
+    ): ColorSchemeDao = database.colorSchemeDao()
 }

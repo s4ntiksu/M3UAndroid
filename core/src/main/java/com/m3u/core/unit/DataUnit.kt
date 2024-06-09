@@ -1,5 +1,6 @@
 package com.m3u.core.unit
 
+import androidx.compose.runtime.Immutable
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -7,7 +8,8 @@ val Double.GB: DataUnit.GB get() = DataUnit.GB(this)
 val Double.MB: DataUnit.MB get() = DataUnit.MB(this)
 val Double.KB: DataUnit.KB get() = DataUnit.KB(this)
 
-sealed class DataUnit {
+@Immutable
+sealed class DataUnit : Comparable<DataUnit> {
     data class GB(val value: Double) : DataUnit() {
         override fun toString(): String = "${value.toInt()} GB"
     }
@@ -18,6 +20,18 @@ sealed class DataUnit {
 
     data class KB(val value: Double) : DataUnit() {
         override fun toString(): String = "${value.toInt()} KB"
+    }
+
+    val length: Double
+        get() = when (this) {
+            is GB -> 1024 * 1024 * 1024 * value
+            is MB -> 1024 * 1024 * value
+            is KB -> 1024 * value
+            Unspecified -> 0.0
+        }
+
+    override fun compareTo(other: DataUnit): Int {
+        return this.length.compareTo(other.length)
     }
 
     companion object {

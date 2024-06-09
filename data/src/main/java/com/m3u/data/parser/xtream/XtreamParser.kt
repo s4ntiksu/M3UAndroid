@@ -11,9 +11,11 @@ interface XtreamParser {
     suspend fun getSeriesInfoOrThrow(
         input: XtreamInput,
         seriesId: Int
-    ): XtreamStreamInfo
+    ): XtreamChannelInfo
 
     fun parse(input: XtreamInput): Flow<XtreamData>
+
+    suspend fun getInfo(input: XtreamInput): XtreamInfo
 
     suspend fun getXtreamOutput(input: XtreamInput): XtreamOutput
 

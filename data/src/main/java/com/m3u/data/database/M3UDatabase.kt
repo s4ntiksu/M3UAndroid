@@ -4,20 +4,26 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.m3u.data.database.dao.ColorPackDao
+import com.m3u.data.database.dao.ChannelDao
+import com.m3u.data.database.dao.ColorSchemeDao
 import com.m3u.data.database.dao.EpisodeDao
 import com.m3u.data.database.dao.PlaylistDao
 import com.m3u.data.database.dao.ProgrammeDao
-import com.m3u.data.database.dao.StreamDao
-import com.m3u.data.database.model.ColorPack
+import com.m3u.data.database.model.Channel
+import com.m3u.data.database.model.ColorScheme
 import com.m3u.data.database.model.Episode
 import com.m3u.data.database.model.Playlist
 import com.m3u.data.database.model.Programme
-import com.m3u.data.database.model.Stream
 
 @Database(
-    entities = [Stream::class, Playlist::class, Episode::class, Programme::class, ColorPack::class],
-    version = 16,
+    entities = [
+        Playlist::class,
+        Channel::class,
+        Programme::class,
+        Episode::class,
+        ColorScheme::class
+    ],
+    version = 18,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(
@@ -42,14 +48,16 @@ import com.m3u.data.database.model.Stream
             from = 14,
             to = 16,
             spec = DatabaseMigrations.AutoMigrate14To16::class
-        )
+        ),
+        AutoMigration(from = 16, to = 17),
+        AutoMigration(from = 17, to = 18)
     ]
 )
 @TypeConverters(Converters::class)
 internal abstract class M3UDatabase : RoomDatabase() {
-    abstract fun streamDao(): StreamDao
+    abstract fun channelDao(): ChannelDao
     abstract fun playlistDao(): PlaylistDao
     abstract fun episodeDao(): EpisodeDao
     abstract fun programmeDao(): ProgrammeDao
-    abstract fun colorPackDao(): ColorPackDao
+    abstract fun colorSchemeDao(): ColorSchemeDao
 }

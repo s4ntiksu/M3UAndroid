@@ -46,18 +46,18 @@ internal class ProgrammeRepositoryImpl @Inject constructor(
     private val logger = delegate.install(Profiles.REPOS_PROGRAMME)
     override val refreshingEpgUrls = MutableStateFlow<List<String>>(emptyList())
 
-    override fun pagingByEpgUrlsAndChannelId(
+    override fun pagingByEpgUrlsAndOriginalId(
         epgUrls: List<String>,
-        channelId: String
-    ): PagingSource<Int, Programme> = programmeDao.pagingByEpgUrlsAndChannelId(epgUrls, channelId)
+        originalId: String
+    ): PagingSource<Int, Programme> = programmeDao.pagingByEpgUrlsAndOriginalId(epgUrls, originalId)
 
     override fun observeProgrammeRange(
         playlistUrl: String,
-        channelId: String
+        originalId: String
     ): Flow<ProgrammeRange> = playlistDao.observeByUrl(playlistUrl).flatMapLatest { playlist ->
         playlist ?: return@flatMapLatest flowOf()
         programmeDao
-            .observeProgrammeRange(playlist.epgUrlsOrXtreamXmlUrl(), channelId)
+            .observeProgrammeRange(playlist.epgUrlsOrXtreamXmlUrl(), originalId)
             .filterNot { (start, end) -> start == 0L || end == 0L }
     }
 
@@ -71,11 +71,15 @@ internal class ProgrammeRepositoryImpl @Inject constructor(
             }
 
     override fun checkOrRefreshProgrammesOrThrow(
-        playlistUrl: String,
+        vararg playlistUrls: String,
         ignoreCache: Boolean
     ): Flow<Int> = channelFlow {
-        val playlist = playlistDao.getByUrl(playlistUrl) ?: return@channelFlow
-        val epgUrls = playlist.epgUrlsOrXtreamXmlUrl()
+        val epgUrls = playlistUrls.flatMap { playlistUrl ->
+            val playlist = playlistDao.get(playlistUrl) ?: return@flatMap emptyList()
+            playlist.epgUrlsOrXtreamXmlUrl()
+        }
+            .toSet()
+            .toList()
         val producer = checkOrRefreshProgrammesOrThrowImpl(
             epgUrls = epgUrls,
             ignoreCache = ignoreCache

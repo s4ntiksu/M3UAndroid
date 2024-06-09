@@ -13,32 +13,32 @@ import com.m3u.core.architecture.logger.execute
 import com.m3u.core.architecture.logger.install
 import com.m3u.core.architecture.logger.post
 import com.m3u.core.architecture.logger.sandBox
+import com.m3u.core.architecture.preferences.PlaylistStrategy
 import com.m3u.core.architecture.preferences.Preferences
-import com.m3u.core.architecture.preferences.annotation.PlaylistStrategy
 import com.m3u.core.util.basic.startsWithAny
 import com.m3u.core.util.readFileContent
 import com.m3u.core.util.readFileName
 import com.m3u.data.api.OkhttpClient
+import com.m3u.data.database.dao.ChannelDao
 import com.m3u.data.database.dao.PlaylistDao
 import com.m3u.data.database.dao.ProgrammeDao
-import com.m3u.data.database.dao.StreamDao
+import com.m3u.data.database.model.Channel
 import com.m3u.data.database.model.DataSource
 import com.m3u.data.database.model.Playlist
+import com.m3u.data.database.model.PlaylistWithChannels
 import com.m3u.data.database.model.PlaylistWithCount
-import com.m3u.data.database.model.PlaylistWithStreams
-import com.m3u.data.database.model.Stream
 import com.m3u.data.database.model.fromLocal
 import com.m3u.data.parser.m3u.M3UData
 import com.m3u.data.parser.m3u.M3UParser
-import com.m3u.data.parser.m3u.toStream
+import com.m3u.data.parser.m3u.toChannel
+import com.m3u.data.parser.xtream.XtreamChannelInfo
 import com.m3u.data.parser.xtream.XtreamInput
 import com.m3u.data.parser.xtream.XtreamLive
 import com.m3u.data.parser.xtream.XtreamParser
 import com.m3u.data.parser.xtream.XtreamSerial
-import com.m3u.data.parser.xtream.XtreamStreamInfo
 import com.m3u.data.parser.xtream.XtreamVod
-import com.m3u.data.parser.xtream.asStream
-import com.m3u.data.parser.xtream.toStream
+import com.m3u.data.parser.xtream.asChannel
+import com.m3u.data.parser.xtream.toChannel
 import com.m3u.data.repository.BackupOrRestoreContracts
 import com.m3u.data.repository.createCoroutineCache
 import com.m3u.data.worker.SubscriptionWorker
@@ -50,7 +50,10 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -72,7 +75,7 @@ private const val BUFFER_RESTORE_CAPACITY = 400
 
 internal class PlaylistRepositoryImpl @Inject constructor(
     private val playlistDao: PlaylistDao,
-    private val streamDao: StreamDao,
+    private val channelDao: ChannelDao,
     private val programmeDao: ProgrammeDao,
     delegate: Logger,
     @OkhttpClient(true) private val okHttpClient: OkHttpClient,
@@ -99,30 +102,30 @@ internal class PlaylistRepositoryImpl @Inject constructor(
                 actualUrl: $actualUrl
             """.trimIndent()
         }
-        val favOrHiddenChannelIds = when (preferences.playlistStrategy) {
+        val favOrHiddenOriginalIds = when (preferences.playlistStrategy) {
             PlaylistStrategy.ALL -> emptyList()
             else -> {
-                streamDao.getFavOrHiddenChannelIdsByPlaylistUrl(url)
+                channelDao.getFavOrHiddenOriginalIdsByPlaylistUrl(url)
             }
         }
         val favOrHiddenUrls = when (preferences.playlistStrategy) {
             PlaylistStrategy.ALL -> emptyList()
             else -> {
-                streamDao.getFavOrHiddenUrlsByPlaylistUrlNotContainsChannelId(url)
+                channelDao.getFavOrHiddenUrlsByPlaylistUrlNotContainsOriginalId(url)
             }
         }
 
         when (preferences.playlistStrategy) {
             PlaylistStrategy.ALL -> {
-                streamDao.deleteByPlaylistUrl(url)
+                channelDao.deleteByPlaylistUrl(url)
             }
 
             PlaylistStrategy.KEEP -> {
-                streamDao.deleteByPlaylistUrlIgnoreFavOrHidden(url)
+                channelDao.deleteByPlaylistUrlIgnoreFavOrHidden(url)
             }
         }
 
-        val playlist = playlistDao.getByUrl(actualUrl)?.copy(
+        val playlist = playlistDao.get(actualUrl)?.copy(
             title = title,
             // maybe be saved as epg or any other sources.
             source = DataSource.M3U
@@ -130,7 +133,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
         playlistDao.insertOrReplace(playlist)
 
         val cache = createCoroutineCache<M3UData>(BUFFER_M3U_CAPACITY) { all ->
-            streamDao.insertOrReplaceAll(*all.map { it.toStream(actualUrl) }.toTypedArray())
+            channelDao.insertOrReplaceAll(*all.map { it.toChannel(actualUrl) }.toTypedArray())
             currentCount += all.size
             callback(currentCount)
         }
@@ -144,10 +147,10 @@ internal class PlaylistRepositoryImpl @Inject constructor(
                 m3uParser
                     .parse(input.buffered())
                     .filterNot {
-                        val channelId = it.id
+                        val originalId = it.id
                         when {
-                            channelId.isBlank() -> it.url in favOrHiddenUrls
-                            else -> channelId in favOrHiddenChannelIds
+                            originalId.isBlank() -> it.url in favOrHiddenUrls
+                            else -> originalId in favOrHiddenOriginalIds
                         }
                     }
                     .collect { send(it) }
@@ -187,7 +190,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
             serverProtocol = serverProtocol,
             port = port
         ).let { url ->
-            playlistDao.getByUrl(url)
+            playlistDao.get(url)
                 ?.takeIf { it.source == DataSource.Xtream }
                 ?.copy(
                     title = title
@@ -203,7 +206,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
             serverProtocol = serverProtocol,
             port = port
         ).let { url ->
-            playlistDao.getByUrl(url)
+            playlistDao.get(url)
                 ?.takeIf { it.source == DataSource.Xtream }
                 ?.copy(
                     title = title
@@ -219,7 +222,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
             serverProtocol = serverProtocol,
             port = port
         ).let { url ->
-            playlistDao.getByUrl(url)
+            playlistDao.get(url)
                 ?.takeIf { it.source == DataSource.Xtream }
                 ?.copy(
                     title = title
@@ -231,7 +234,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
                 )
         }
 
-        val favOrHiddenChannelIds = streamDao.getFavOrHiddenChannelIdsByPlaylistUrl(
+        val favOrHiddenOriginalIds = channelDao.getFavOrHiddenOriginalIdsByPlaylistUrl(
             livePlaylist.url,
             vodPlaylist.url,
             seriesPlaylist.url
@@ -243,11 +246,11 @@ internal class PlaylistRepositoryImpl @Inject constructor(
         if (requiredLives) {
             when (preferences.playlistStrategy) {
                 PlaylistStrategy.ALL -> {
-                    streamDao.deleteByPlaylistUrl(livePlaylist.url)
+                    channelDao.deleteByPlaylistUrl(livePlaylist.url)
                 }
 
                 PlaylistStrategy.KEEP -> {
-                    streamDao.deleteByPlaylistUrlIgnoreFavOrHidden(livePlaylist.url)
+                    channelDao.deleteByPlaylistUrlIgnoreFavOrHidden(livePlaylist.url)
                 }
             }
             playlistDao.insertOrReplace(livePlaylist)
@@ -255,11 +258,11 @@ internal class PlaylistRepositoryImpl @Inject constructor(
         if (requiredVods) {
             when (preferences.playlistStrategy) {
                 PlaylistStrategy.ALL -> {
-                    streamDao.deleteByPlaylistUrl(vodPlaylist.url)
+                    channelDao.deleteByPlaylistUrl(vodPlaylist.url)
                 }
 
                 PlaylistStrategy.KEEP -> {
-                    streamDao.deleteByPlaylistUrlIgnoreFavOrHidden(vodPlaylist.url)
+                    channelDao.deleteByPlaylistUrlIgnoreFavOrHidden(vodPlaylist.url)
                 }
             }
             playlistDao.insertOrReplace(vodPlaylist)
@@ -267,11 +270,11 @@ internal class PlaylistRepositoryImpl @Inject constructor(
         if (requiredSeries) {
             when (preferences.playlistStrategy) {
                 PlaylistStrategy.ALL -> {
-                    streamDao.deleteByPlaylistUrl(seriesPlaylist.url)
+                    channelDao.deleteByPlaylistUrl(seriesPlaylist.url)
                 }
 
                 PlaylistStrategy.KEEP -> {
-                    streamDao.deleteByPlaylistUrlIgnoreFavOrHidden(seriesPlaylist.url)
+                    channelDao.deleteByPlaylistUrlIgnoreFavOrHidden(seriesPlaylist.url)
                 }
             }
             playlistDao.insertOrReplace(seriesPlaylist)
@@ -283,7 +286,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
         val cache = createCoroutineCache(BUFFER_XTREAM_CAPACITY) { all ->
             currentCount += all.size
             callback(currentCount)
-            streamDao.insertOrReplaceAll(*all.toTypedArray())
+            channelDao.insertOrReplaceAll(*all.toTypedArray())
         }
 
         xtreamParser
@@ -292,11 +295,11 @@ internal class PlaylistRepositoryImpl @Inject constructor(
                 when (current) {
                     is XtreamLive -> {
                         val favOrHidden = with(current.streamId) {
-                            val channelId = this.toString()
-                            this != null && channelId in favOrHiddenChannelIds
+                            val originalId = this.toString()
+                            this != null && originalId in favOrHiddenOriginalIds
                         }
                         if (favOrHidden) return@mapNotNull null
-                        current.toStream(
+                        current.toChannel(
                             basicUrl = basicUrl,
                             username = username,
                             password = password,
@@ -308,11 +311,11 @@ internal class PlaylistRepositoryImpl @Inject constructor(
 
                     is XtreamVod -> {
                         val favOrHidden = with(current.streamId) {
-                            val channelId = this.toString()
-                            this != null && channelId in favOrHiddenChannelIds
+                            val originalId = this.toString()
+                            this != null && originalId in favOrHiddenOriginalIds
                         }
                         if (favOrHidden) return@mapNotNull null
-                        current.toStream(
+                        current.toChannel(
                             basicUrl = basicUrl,
                             username = username,
                             password = password,
@@ -321,16 +324,16 @@ internal class PlaylistRepositoryImpl @Inject constructor(
                         )
                     }
 
-                    // we save serial as stream
-                    // when we click the serial stream, we should call serialInfo api
+                    // we save serial as channel
+                    // when we click the serial channel, we should call serialInfo api
                     // for its episodes.
                     is XtreamSerial -> {
                         val favOrHidden = with(current.seriesId) {
-                            val channelId = this.toString()
-                            this != null && channelId in favOrHiddenChannelIds
+                            val originalId = this.toString()
+                            this != null && originalId in favOrHiddenOriginalIds
                         }
                         if (favOrHidden) return@mapNotNull null
-                        current.asStream(
+                        current.asChannel(
                             basicUrl = basicUrl,
                             username = username,
                             password = password,
@@ -390,10 +393,10 @@ internal class PlaylistRepositoryImpl @Inject constructor(
         val json = Json {
             prettyPrint = false
         }
-        val all = playlistDao.getAllWithStreams()
+        val all = playlistDao.getAllWithChannels()
         context.contentResolver.openOutputStream(uri)?.use {
             val writer = it.bufferedWriter()
-            all.forEach { (playlist, streams) ->
+            all.forEach { (playlist, channels) ->
                 if (playlist.fromLocal) {
                     logger.log("The playlist is from local storage, skipped. ($playlist)")
                     return@forEach
@@ -404,12 +407,12 @@ internal class PlaylistRepositoryImpl @Inject constructor(
                     writer.appendLine(wrappedPlaylist)
                 }
 
-                streams.forEach { stream ->
+                channels.forEach { channel ->
                     logger.sandBox {
-                        val encodedStream = json.encodeToString(stream)
-                        val wrappedStream = BackupOrRestoreContracts.wrapStream(encodedStream)
-                        logger.log(wrappedStream)
-                        writer.appendLine(wrappedStream)
+                        val encodedChannel = json.encodeToString(channel)
+                        val wrappedChannel = BackupOrRestoreContracts.wrapChannel(encodedChannel)
+                        logger.log(wrappedChannel)
+                        writer.appendLine(wrappedChannel)
                     }
                 }
             }
@@ -426,25 +429,25 @@ internal class PlaylistRepositoryImpl @Inject constructor(
             context.contentResolver.openInputStream(uri)?.use {
                 val reader = it.bufferedReader()
 
-                val streams = mutableListOf<Stream>()
+                val channels = mutableListOf<Channel>()
                 reader.forEachLine { line ->
                     if (line.isBlank()) return@forEachLine
                     val encodedPlaylist = BackupOrRestoreContracts.unwrapPlaylist(line)
-                    val encodedStream = BackupOrRestoreContracts.unwrapStream(line)
+                    val encodedChannel = BackupOrRestoreContracts.unwrapChannel(line)
                     when {
                         encodedPlaylist != null -> logger.sandBox {
                             val playlist = json.decodeFromString<Playlist>(encodedPlaylist)
                             playlistDao.insertOrReplace(playlist)
                         }
 
-                        encodedStream != null -> logger.sandBox {
-                            val stream = json.decodeFromString<Stream>(encodedStream)
-                            streams.add(stream)
-                            if (streams.size >= BUFFER_RESTORE_CAPACITY) {
+                        encodedChannel != null -> logger.sandBox {
+                            val channel = json.decodeFromString<Channel>(encodedChannel)
+                            channels.add(channel)
+                            if (channels.size >= BUFFER_RESTORE_CAPACITY) {
                                 mutex.withLock {
-                                    if (streams.size >= BUFFER_RESTORE_CAPACITY) {
-                                        streamDao.insertOrReplaceAll(*streams.toTypedArray())
-                                        streams.clear()
+                                    if (channels.size >= BUFFER_RESTORE_CAPACITY) {
+                                        channelDao.insertOrReplaceAll(*channels.toTypedArray())
+                                        channels.clear()
                                     }
                                 }
                             }
@@ -454,7 +457,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
                     }
                 }
                 mutex.withLock {
-                    streamDao.insertOrReplaceAll(*streams.toTypedArray())
+                    channelDao.insertOrReplaceAll(*channels.toTypedArray())
                 }
             }
         }
@@ -499,24 +502,65 @@ internal class PlaylistRepositoryImpl @Inject constructor(
             emit(null)
         }
 
-    override fun observeWithStreams(url: String): Flow<PlaylistWithStreams?> = playlistDao
-        .observeByUrlWithStreams(url)
+    override fun observePlaylistWithChannels(url: String): Flow<PlaylistWithChannels?> = playlistDao
+        .observeByUrlWithChannels(url)
         .catch {
             logger.log(it)
             emit(null)
         }
 
-    override suspend fun getWithStreams(url: String): PlaylistWithStreams? = logger.execute {
-        playlistDao.getByUrlWithStreams(url)
-    }
+    override suspend fun getPlaylistWithChannels(url: String): PlaylistWithChannels? =
+        logger.execute {
+            playlistDao.getByUrlWithChannels(url)
+        }
 
     override suspend fun get(url: String): Playlist? = logger.execute {
-        playlistDao.getByUrl(url)
+        playlistDao.get(url)
+    }
+
+    override suspend fun getAll(): List<Playlist> = logger.execute {
+        playlistDao.getAll()
+    } ?: emptyList()
+
+    override suspend fun getAllAutoRefresh(): List<Playlist> = logger.execute {
+        playlistDao.getAllAutoRefresh()
+    } ?: emptyList()
+
+    override suspend fun getBySource(source: DataSource): List<Playlist> = logger.execute {
+        playlistDao.getBySource(source)
+    } ?: emptyList()
+
+    override suspend fun getCategoriesByPlaylistUrlIgnoreHidden(
+        url: String,
+        query: String
+    ): List<String> = playlistDao.get(url).let { playlist ->
+        val pinnedCategories = playlist?.pinnedCategories ?: emptyList()
+        val hiddenCategories = playlist?.hiddenCategories ?: emptyList()
+        channelDao
+            .getCategoriesByPlaylistUrl(url, query)
+            .filterNot { it in hiddenCategories }
+            .sortedByDescending { it in pinnedCategories }
+    }
+
+    override fun observeCategoriesByPlaylistUrlIgnoreHidden(
+        url: String,
+        query: String
+    ): Flow<List<String>> = playlistDao.observeByUrl(url).flatMapLatest { playlist ->
+        playlist ?: return@flatMapLatest flowOf()
+        val pinnedCategories = playlist.pinnedCategories
+        val hiddenCategories = playlist.hiddenCategories
+        channelDao
+            .observeCategoriesByPlaylistUrl(playlist.url, query)
+            .map { categories ->
+                categories
+                    .filterNot { it in hiddenCategories }
+                    .sortedByDescending { it in pinnedCategories }
+            }
     }
 
     override suspend fun unsubscribe(url: String): Playlist? = logger.execute {
-        val playlist = playlistDao.getByUrl(url)
-        streamDao.deleteByPlaylistUrl(url)
+        val playlist = playlistDao.get(url)
+        channelDao.deleteByPlaylistUrl(url)
         playlist?.also {
             playlistDao.delete(it)
         }
@@ -535,7 +579,7 @@ internal class PlaylistRepositoryImpl @Inject constructor(
         playlistDao.observeAllCounts()
             .catch { emit(emptyList()) }
 
-    override suspend fun readEpisodesOrThrow(series: Stream): List<XtreamStreamInfo.Episode> {
+    override suspend fun readEpisodesOrThrow(series: Channel): List<XtreamChannelInfo.Episode> {
         val playlist = checkNotNull(get(series.playlistUrl)) { "playlist is not exist" }
         val seriesInfo = xtreamParser.getSeriesInfoOrThrow(
             input = XtreamInput.decodeFromPlaylistUrl(playlist.url),
@@ -552,10 +596,10 @@ internal class PlaylistRepositoryImpl @Inject constructor(
     }
 
     override suspend fun onUpdateEpgPlaylist(useCase: PlaylistRepository.UpdateEpgPlaylistUseCase) {
-        val playlist = checkNotNull(playlistDao.getByUrl(useCase.playlistUrl)) {
+        val playlist = checkNotNull(playlistDao.get(useCase.playlistUrl)) {
             "Cannot find playlist before update associated epg"
         }
-        val epg = checkNotNull(playlistDao.getByUrl(useCase.epgUrl)) {
+        val epg = checkNotNull(playlistDao.get(useCase.epgUrl)) {
             "Cannot find associated epg"
         }
 
@@ -563,6 +607,14 @@ internal class PlaylistRepositoryImpl @Inject constructor(
             if (useCase.action) epgUrls + epg.url
             else epgUrls - epg.url
         }
+    }
+
+    override suspend fun onUpdatePlaylistAutoRefreshProgrammes(playlistUrl: String) {
+        val playlist = playlistDao.get(playlistUrl) ?: return
+        playlistDao.updatePlaylistAutoRefreshProgrammes(
+            playlistUrl,
+            !playlist.autoRefreshProgrammes
+        )
     }
 
     private val filenameWithTimezone: String get() = "File_${System.currentTimeMillis()}"

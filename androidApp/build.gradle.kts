@@ -17,8 +17,8 @@ android {
         applicationId = "com.m3u.androidApp"
         minSdk = 26
         targetSdk = 33
-        versionCode = 137
-        versionName = "1.14.0-beta11"
+        versionCode = 141
+        versionName = "1.14.0-rc01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["androidx.benchmark.profiling.mode"] = "MethodTracing"
@@ -126,36 +126,32 @@ hilt {
 dependencies {
     implementation(project(":core"))
     implementation(project(":ui"))
-    implementation(project(":features:foryou"))
-    implementation(project(":features:favorite"))
-    implementation(project(":features:setting"))
-    implementation(project(":features:playlist"))
-    implementation(project(":features:stream"))
-    implementation(project(":features:playlist-configuration"))
-    implementation(project(":features:crash"))
+    implementation(project(":feature:foryou"))
+    implementation(project(":feature:favorite"))
+    implementation(project(":feature:setting"))
+    implementation(project(":feature:playlist"))
+    implementation(project(":feature:channel"))
+    implementation(project(":feature:playlist-configuration"))
+    implementation(project(":feature:crash"))
 
-    implementation(libs.androidx.core.core.ktx)
-    implementation(libs.androidx.appcompat.appcompat)
-    implementation(libs.androidx.activity.activity.compose)
-    implementation(libs.androidx.startup.startup.runtime)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.startup.runtime)
 
-    implementation(libs.androidx.lifecycle.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.lifecycle.process)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.process)
 
-    implementation(libs.androidx.core.core.splashscreen)
+    implementation(libs.androidx.core.splashscreen)
 
-    implementation(libs.com.google.dagger.hilt.android)
-    ksp(libs.com.google.dagger.hilt.compiler)
-    implementation(libs.androidx.hilt.hilt.navigation.compose)
+    implementation(libs.google.dagger.hilt)
+    ksp(libs.google.dagger.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation(libs.androidx.work.work.runtime.ktx)
-    ksp(libs.androidx.hilt.hilt.compiler)
-    implementation(libs.androidx.hilt.hilt.work)
+    implementation(libs.androidx.work.runtime.ktx)
+    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.hilt.work)
 
-    debugImplementation(libs.com.squareup.leakcanary.leakcanary.android)
-
-    androidTestImplementation(libs.androidx.compose.ui.ui.test.junit4)
-
-    implementation(libs.androidx.compose.material3.material3.adaptive)
+    debugImplementation(libs.squareup.leakcanary)
 }

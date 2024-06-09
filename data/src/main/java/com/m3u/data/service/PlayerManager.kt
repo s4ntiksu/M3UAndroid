@@ -1,6 +1,7 @@
 package com.m3u.data.service
 
 import android.graphics.Rect
+import androidx.compose.runtime.Immutable
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.PlaybackException
@@ -8,8 +9,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.Tracks
 import com.m3u.data.database.model.Playlist
-import com.m3u.data.database.model.Stream
-import com.m3u.data.parser.xtream.XtreamStreamInfo
+import com.m3u.data.database.model.Channel
+import com.m3u.data.parser.xtream.XtreamChannelInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,11 +21,12 @@ interface PlayerManager {
     val player: StateFlow<Player?>
     val size: StateFlow<Rect>
 
-    val stream: StateFlow<Stream?>
+    val channel: StateFlow<Channel?>
     val playlist: StateFlow<Playlist?>
 
     val playbackState: StateFlow<@Player.State Int>
     val playbackException: StateFlow<PlaybackException?>
+    val isPlaying: StateFlow<Boolean>
 
     val tracksGroups: StateFlow<List<Tracks.Group>>
     val cacheSpace: Flow<Long>
@@ -38,12 +40,13 @@ interface PlayerManager {
     fun pauseOrContinue(value: Boolean)
 }
 
-sealed class MediaCommand(open val streamId: Int) {
-    data class Live(override val streamId: Int) : MediaCommand(streamId)
+@Immutable
+sealed class MediaCommand(open val channelId: Int) {
+    data class Common(override val channelId: Int) : MediaCommand(channelId)
     data class XtreamEpisode(
-        override val streamId: Int,
-        val episode: XtreamStreamInfo.Episode
-    ) : MediaCommand(streamId)
+        override val channelId: Int,
+        val episode: XtreamChannelInfo.Episode
+    ) : MediaCommand(channelId)
 }
 
 val PlayerManager.tracks: Flow<Map<@C.TrackType Int, List<Format>>>

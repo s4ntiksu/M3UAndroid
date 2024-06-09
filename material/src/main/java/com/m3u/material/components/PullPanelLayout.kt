@@ -16,7 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.offset
+import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
 import kotlin.math.roundToInt
 
 enum class PullPanelLayoutValue {
@@ -44,11 +47,13 @@ fun PullPanelLayout(
     content: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     state: PullPanelLayoutState = rememberPullPanelLayoutState(),
-    aspectRatio: Float = 10 / 7f,
     enabled: Boolean = true,
     onOffsetChanged: (Float) -> Unit = {},
     onValueChanged: (PullPanelLayoutValue) -> Unit = {}
 ) {
+    val configuration = LocalConfiguration.current
+    val useVertical = configuration.screenWidthDp < configuration.screenHeightDp
+    val aspectRatio = if (useVertical) 10 / 7f else 4 / 3f
     BackHandler(state.value == PullPanelLayoutValue.EXPANDED) {
         state.collapse()
     }
@@ -64,19 +69,16 @@ fun PullPanelLayout(
         LaunchedEffect(state.intention) {
             when (state.intention) {
                 PullPanelLayoutValue.EXPANDED -> {
-                    offset = constraints.maxWidth * aspectRatio
+                    offset = if (useVertical) constraints.maxWidth * aspectRatio
+                    else constraints.maxHeight / aspectRatio
                     onOffsetChanged(offset)
-                    if (state.value != PullPanelLayoutValue.EXPANDED) {
-                        onValueChanged(PullPanelLayoutValue.EXPANDED)
-                    }
+                    onValueChanged(PullPanelLayoutValue.EXPANDED)
                 }
 
                 PullPanelLayoutValue.COLLAPSED -> {
                     offset = 0f
                     onOffsetChanged(offset)
-                    if (state.value != PullPanelLayoutValue.COLLAPSED) {
-                        onValueChanged(PullPanelLayoutValue.COLLAPSED)
-                    }
+                    onValueChanged(PullPanelLayoutValue.COLLAPSED)
                 }
             }
         }
@@ -84,11 +86,6 @@ fun PullPanelLayout(
             targetValue = offset,
             label = "offset"
         )
-        LaunchedEffect(enabled) {
-            if (!enabled) {
-                state.collapse()
-            }
-        }
         SubcomposeLayout(
             modifier
                 .draggable(
@@ -101,7 +98,6 @@ fun PullPanelLayout(
                     },
                     onDragStopped = {
                         offset = if (offset <= constraints.maxWidth * aspectRatio / 2) {
-
                             if (state.value != PullPanelLayoutValue.COLLAPSED) {
                                 onValueChanged(PullPanelLayoutValue.COLLAPSED)
                             }
@@ -119,33 +115,57 @@ fun PullPanelLayout(
         ) { constraints ->
             val maxHeight = constraints.maxHeight
             val maxWidth = constraints.maxWidth
-            val panelLayerPlaceable = subcompose(PullPanelLayoutValue.EXPANDED, panel)
-                .first()
-                .measure(
-                    constraints
-                        .copy(
-                            maxHeight = currentOffset
+            val panelLayerPlaceables = subcompose(PullPanelLayoutValue.EXPANDED, panel)
+                .fastMap {
+                    it.measure(
+                        if (useVertical) constraints
+                            .copy(
+                                maxHeight = currentOffset
+                                    .roundToInt()
+                                    .coerceAtMost(
+                                        (maxWidth * aspectRatio).roundToInt()
+                                    )
+                            )
+                        else constraints.copy(
+                            maxWidth = currentOffset
                                 .roundToInt()
                                 .coerceAtMost(
-                                    (maxWidth * aspectRatio).roundToInt()
+                                    (maxHeight / aspectRatio).roundToInt()
                                 )
                         )
-                )
+                    )
+                }
 
-            val contentPlaceable = subcompose(PullPanelLayoutValue.COLLAPSED, content)
-                .first()
-                .measure(
-                    constraints
-                        .offset(
-                            vertical = -currentOffset
-                                .roundToInt()
-                                .coerceAtMost((maxWidth * aspectRatio).roundToInt())
-                        )
-                )
+            val contentPlaceables = subcompose(PullPanelLayoutValue.COLLAPSED, content)
+                .fastMap {
+                    it.measure(
+                        if (useVertical) constraints
+                            .offset(
+                                vertical = -currentOffset
+                                    .roundToInt()
+                                    .coerceAtMost((maxWidth * aspectRatio).roundToInt())
+                            )
+                        else constraints
+                            .offset(
+                                horizontal = -currentOffset
+                                    .roundToInt()
+                                    .coerceAtMost((maxHeight / aspectRatio).roundToInt())
+                            )
+                    )
+                }
 
             layout(maxWidth, maxHeight) {
-                contentPlaceable.placeRelative(0, 0)
-                panelLayerPlaceable.placeRelative(0, contentPlaceable.height)
+                contentPlaceables.fastForEach { it.placeRelative(0, 0) }
+                panelLayerPlaceables.fastForEach { placeable ->
+                    if (useVertical) placeable.placeRelative(
+                        0,
+                        contentPlaceables.maxOfOrNull { it.height } ?: 0
+                    )
+                    else placeable.placeRelative(
+                        contentPlaceables.maxOfOrNull { it.width } ?: 0,
+                        0
+                    )
+                }
             }
         }
     }
@@ -167,4 +187,3 @@ private class PullPanelLayoutStateImpl(
 
     override var intention: PullPanelLayoutValue by mutableStateOf(initialValue)
 }
-

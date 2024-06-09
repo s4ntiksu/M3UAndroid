@@ -5,6 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -22,12 +23,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,18 +40,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Border
-import androidx.tv.material3.Card
 import com.m3u.material.LocalM3UHapticFeedback
 import com.m3u.material.ktx.InteractionType
-import com.m3u.material.ktx.asColorScheme
 import com.m3u.material.ktx.createScheme
 import com.m3u.material.ktx.interactionBorder
 import com.m3u.material.ktx.isTelevision
 import com.m3u.material.model.LocalSpacing
 import com.m3u.material.model.SugarColors
+import androidx.tv.material3.Card as TvCard
+import androidx.tv.material3.CardDefaults as TvCardDefaults
+import androidx.tv.material3.Icon as TvIcon
 
 @Composable
 fun ThemeSelection(
@@ -68,7 +71,7 @@ fun ThemeSelection(
     val tv = isTelevision()
 
     val colorScheme = remember(argb, isDark) {
-        createScheme(argb, isDark).asColorScheme()
+        createScheme(argb, isDark)
     }
 
     val alpha by animateFloatAsState(
@@ -126,10 +129,15 @@ fun ThemeSelection(
                 color = colorScheme.tertiaryContainer,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(colorScheme.onTertiaryContainer)
-                    .padding(vertical = 2.dp)
+                    .basicMarquee(
+                        iterations = if (selected) Int.MAX_VALUE else 0
+                    )
+                    .padding(2.dp)
             )
         }
     }
@@ -169,7 +177,7 @@ fun ThemeSelection(
                 Box(
                     modifier = Modifier.combinedClickable(
                         interactionSource = interactionSource,
-                        indication = rememberRipple(),
+                        indication = ripple(),
                         onClick = {
                             if (selected) return@combinedClickable
                             feedback.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -200,22 +208,22 @@ fun ThemeSelection(
                 }
             }
         } else {
-            Card(
-                colors = androidx.tv.material3.CardDefaults.colors(
+            TvCard(
+                colors = TvCardDefaults.colors(
                     containerColor = colorScheme.background,
                     contentColor = colorScheme.onBackground
                 ),
-                shape = androidx.tv.material3.CardDefaults.shape(
+                shape = TvCardDefaults.shape(
                     RoundedCornerShape(spacing.large)
                 ),
-                border = androidx.tv.material3.CardDefaults.border(focusedBorder = Border.None),
-                scale = androidx.tv.material3.CardDefaults.scale(
+                border = TvCardDefaults.border(focusedBorder = Border.None),
+                scale = TvCardDefaults.scale(
                     scale = 0.8f,
                     focusedScale = 0.95f,
                     pressedScale = 0.85f
                 ),
                 onClick = {
-                    if (selected) return@Card
+                    if (selected) return@TvCard
                     onClick()
                 },
                 onLongClick = {
@@ -227,7 +235,7 @@ fun ThemeSelection(
                         content()
                         Crossfade(selected, label = "icon") { selected ->
                             if (!selected) {
-                                androidx.tv.material3.Icon(
+                                TvIcon(
                                     imageVector = when (isDark) {
                                         true -> Icons.Rounded.DarkMode
                                         false -> Icons.Rounded.LightMode

@@ -3,6 +3,13 @@ name: Android CI
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '.github/**'
+      - '.idea/**'
+      - 'fastlane/**'
+      - '!.github/workflows/**'
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
@@ -13,20 +20,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+      - uses: actions/checkout@v4
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew :androidApp:assembleSnapshotChannelRichCodecRelease
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew :androidApp:assembleSnapshotChannelRichCodecRelease
 
-    - name: Upload
-      uses: actions/upload-artifact@v3
-      with:
-          path: "androidApp/build/outputs/apk/"
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          path: "androidApp/build/outputs/apk/snapshotChannelRichCodec/release/*.apk"
+
+      - name: Upload To Telegram
+        uses: xireiki/channel-post@v1.0.7
+        with:
+          bot_token: ${{ secrets.BOT_TOKEN }}
+          chat_id: ${{ secrets.CHAT_ID }}
+#          large_file: true
+          method: sendFile
+          path: "androidApp/build/outputs/apk/snapshotChannelRichCodec/release/*.apk"
+#          parse_mode: Markdown

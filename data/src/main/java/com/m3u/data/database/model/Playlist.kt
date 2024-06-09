@@ -1,6 +1,5 @@
 package com.m3u.data.database.model
 
-import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
@@ -24,7 +23,6 @@ import kotlinx.serialization.encoding.Encoder
 @Entity(tableName = "playlists")
 @Immutable
 @Serializable
-@Keep
 data class Playlist(
     @ColumnInfo(name = "title")
     val title: String,
@@ -36,7 +34,7 @@ data class Playlist(
     // for example, if the source is [DataSource.Xtream],
     // you can use [XtreamInput.decodeFromPlaylistUrl] get its real information include
     // basicUrl, username, password, type(the special query param) and etc.
-    // and then in the xtream-parser we can parse the data only for special type streams.
+    // and then in the xtream-parser we can parse the data only for special type channels.
     val url: String,
     // extra fields
     @ColumnInfo(name = "pinned_groups", defaultValue = "[]")
@@ -50,7 +48,9 @@ data class Playlist(
     val userAgent: String? = null,
     // epg playlist urls
     @ColumnInfo(name = "epg_urls", defaultValue = "[]")
-    val epgUrls: List<String> = emptyList()
+    val epgUrls: List<String> = emptyList(),
+    @ColumnInfo(name = "auto_refresh_programmes", defaultValue = "0")
+    val autoRefreshProgrammes: Boolean = false
 ) : Likable<Playlist> {
     override fun like(another: Playlist): Boolean {
         return title == another.title && url == another.url && source == another.source
@@ -68,6 +68,9 @@ data class Playlist(
     }
 }
 
+val Playlist.isSeries: Boolean get() = type in Playlist.SERIES_TYPES
+val Playlist.isVod: Boolean get() = type in Playlist.VOD_TYPES
+
 val Playlist.fromLocal: Boolean
     get() {
         if (source != DataSource.M3U) return false
@@ -84,44 +87,30 @@ val Playlist.type: String?
         else -> null
     }
 
-val Playlist.typeWithSource: String?
-    get() {
-        if (type == null) return null
-        return "$source $type"
-    }
-
 fun Playlist.epgUrlsOrXtreamXmlUrl(): List<String> = when (source) {
     DataSource.Xtream -> {
-        val input = XtreamInput.decodeFromPlaylistUrl(url)
-        val epgUrl = XtreamParser.createXmlUrl(
-            basicUrl = input.basicUrl,
-            username = input.username,
-            password = input.password
-        )
-        listOf(epgUrl)
+        when (type) {
+            DataSource.Xtream.TYPE_LIVE -> {
+                val input = XtreamInput.decodeFromPlaylistUrl(url)
+                val epgUrl = XtreamParser.createXmlUrl(
+                    basicUrl = input.basicUrl,
+                    username = input.username,
+                    password = input.password
+                )
+                listOf(epgUrl)
+            }
+            else -> emptyList()
+        }
     }
 
     else -> epgUrls
 }
 
-data class PlaylistWithStreams(
-    @Embedded
-    val playlist: Playlist,
-    @Relation(
-        parentColumn = "url",
-        entityColumn = "playlistUrl"
-    )
-    val streams: List<Stream>
+fun Playlist.copyXtreamSeries(series: Channel): Playlist = copy(
+    title = series.title
 )
 
-@Keep
-data class PlaylistWithCount(
-    @Embedded
-    val playlist: Playlist,
-    @ColumnInfo("count")
-    val count: Int
-)
-
+@Immutable
 sealed class DataSource(
     @StringRes val resId: Int,
     val value: String,
@@ -130,9 +119,10 @@ sealed class DataSource(
     object M3U : DataSource(R.string.feat_setting_data_source_m3u, "m3u", true)
 
     // special playlist type.
-    // not like other playlist types, it maps to programmes but not streams.
+    // not like other playlist types, it maps to programmes but not channels.
     // so epg playlists should not be displayed in foryou page.
     // m3u playlist can refer epg playlist ids.
+    // xtream playlist need not save or refer epg playlists.
     object EPG : DataSource(R.string.feat_setting_data_source_epg, "epg", true)
 
     object Xtream : DataSource(R.string.feat_setting_data_source_xtream, "xtream", true) {
@@ -161,6 +151,24 @@ sealed class DataSource(
     }
 }
 
+data class PlaylistWithChannels(
+    @Embedded
+    val playlist: Playlist,
+    @Relation(
+        parentColumn = "url",
+        entityColumn = "playlistUrl"
+    )
+    val channels: List<Channel>
+)
+
+@Immutable
+data class PlaylistWithCount(
+    @Embedded
+    val playlist: Playlist,
+    @ColumnInfo("count")
+    val count: Int
+)
+
 private object DataSourceSerializer : KSerializer<DataSource> {
     override fun deserialize(decoder: Decoder): DataSource {
         return DataSource.of(decoder.decodeString())
@@ -175,7 +183,3 @@ private object DataSourceSerializer : KSerializer<DataSource> {
         encoder.encodeString(value.value)
     }
 }
-
-fun Playlist.copyXtreamSeries(series: Stream): Playlist = copy(
-    title = series.title
-)

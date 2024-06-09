@@ -7,14 +7,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface ProgrammeRepository {
-    fun pagingByEpgUrlsAndChannelId(
+    fun pagingByEpgUrlsAndOriginalId(
         epgUrls: List<String>,
-        channelId: String
+        originalId: String
     ): PagingSource<Int, Programme>
 
     fun observeProgrammeRange(
         playlistUrl: String,
-        channelId: String
+        originalId: String
     ): Flow<ProgrammeRange>
 
     fun observeProgrammeRange(
@@ -23,7 +23,7 @@ interface ProgrammeRepository {
 
     val refreshingEpgUrls: StateFlow<List<String>>
     fun checkOrRefreshProgrammesOrThrow(
-        playlistUrl: String,
+        vararg playlistUrls: String,
         ignoreCache: Boolean
     ): Flow<Int>
 }

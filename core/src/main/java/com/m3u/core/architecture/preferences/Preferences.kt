@@ -2,20 +2,39 @@ package com.m3u.core.architecture.preferences
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.m3u.core.architecture.preferences.annotation.ClipMode
-import com.m3u.core.architecture.preferences.annotation.ConnectTimeout
-import com.m3u.core.architecture.preferences.annotation.PlaylistStrategy
-import com.m3u.core.architecture.preferences.annotation.ReconnectMode
-import com.m3u.core.architecture.preferences.annotation.UnseensMilliseconds
+import androidx.compose.ui.platform.LocalContext
 import com.m3u.core.util.context.booleanAsState
 import com.m3u.core.util.context.intAsState
 import com.m3u.core.util.context.longAsState
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
 import javax.inject.Singleton
+
+@Composable
+fun hiltPreferences(): Preferences {
+    val context = LocalContext.current
+    return remember {
+        val applicationContext = context.applicationContext ?: throw IllegalStateException()
+        EntryPointAccessors
+            .fromApplication<PreferencesEntryPoint>(applicationContext)
+            .preferences
+    }
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+private interface PreferencesEntryPoint {
+    val preferences: Preferences
+}
 
 @Stable
 @Singleton
@@ -42,8 +61,8 @@ class Preferences @Inject constructor(
     var clipMode: Int by
     sharedPreferences.intAsState(DEFAULT_CLIP_MODE, CLIP_MODE)
 
-    var autoRefresh: Boolean by
-    sharedPreferences.booleanAsState(DEFAULT_AUTO_REFRESH, AUTO_REFRESH)
+    var autoRefreshChannels: Boolean by
+    sharedPreferences.booleanAsState(DEFAULT_AUTO_REFRESH_CHANNELS, AUTO_REFRESH_CHANNELS)
 
     var fullInfoPlayer: Boolean by
     sharedPreferences.booleanAsState(DEFAULT_FULL_INFO_PLAYER, FULL_INFO_PLAYER)
@@ -85,18 +104,19 @@ class Preferences @Inject constructor(
     sharedPreferences.booleanAsState(DEFAULT_REMOTE_CONTROL, REMOTE_CONTROL)
     var twelveHourClock: Boolean by
     sharedPreferences.booleanAsState(DEFAULT_12_H_CLOCK_MODE, CLOCK_MODE)
-    var progress: Boolean by
-    sharedPreferences.booleanAsState(DEFAULT_PROGRESS, PROGRESS)
+    var slider: Boolean by
+    sharedPreferences.booleanAsState(DEFAULT_SLIDER, SLIDER)
     var alwaysShowReplay: Boolean by
     sharedPreferences.booleanAsState(DEFAULT_ALWAYS_SHOW_REFRESH, ALWAYS_SHOW_REFRESH)
     var paging: Boolean by
     sharedPreferences.booleanAsState(DEFAULT_PAGING, PAGING)
     var panel: Boolean by sharedPreferences.booleanAsState(DEFAULT_PLAYER_PANEL, PLAYER_PANEL)
     var cache: Boolean by sharedPreferences.booleanAsState(DEFAULT_CACHE, CACHE)
-    var randomlyInFavourite: Boolean by sharedPreferences.booleanAsState(
-        DEFAULT_RANDOMLY_IN_FAVOURITE,
-        RANDOMLY_IN_FAVOURITE
-    )
+    var randomlyInFavourite: Boolean by
+    sharedPreferences.booleanAsState(DEFAULT_RANDOMLY_IN_FAVOURITE, RANDOMLY_IN_FAVOURITE)
+    var colorfulBackground by
+    sharedPreferences.booleanAsState(DEFAULT_COLORFUL_BACKGROUND, COLORFUL_BACKGROUND)
+
 
     companion object {
         private const val SHARED_SETTINGS = "shared_settings"
@@ -111,7 +131,7 @@ class Preferences @Inject constructor(
 
         @ClipMode
         const val DEFAULT_CLIP_MODE = ClipMode.ADAPTIVE
-        const val DEFAULT_AUTO_REFRESH = false
+        const val DEFAULT_AUTO_REFRESH_CHANNELS = false
         const val DEFAULT_FULL_INFO_PLAYER = false
         const val DEFAULT_ROOT_DESTINATION = 0
         const val DEFAULT_NO_PICTURE_MODE = false
@@ -133,7 +153,7 @@ class Preferences @Inject constructor(
         const val DEFAULT_TUNNELING = false
         const val DEFAULT_ALWAYS_TV = false
         const val DEFAULT_REMOTE_CONTROL = false
-        const val DEFAULT_PROGRESS = true
+        const val DEFAULT_SLIDER = true
         const val DEFAULT_ALWAYS_SHOW_REFRESH = false
         const val DEFAULT_PAGING = true
         const val DEFAULT_PLAYER_PANEL = true
@@ -141,6 +161,7 @@ class Preferences @Inject constructor(
         const val DEFAULT_RANDOMLY_IN_FAVOURITE = false
 
         const val DEFAULT_12_H_CLOCK_MODE = false
+        const val DEFAULT_COLORFUL_BACKGROUND = true
 
         const val PLAYLIST_STRATEGY = "playlist-strategy"
         const val ROW_COUNT = "rowCount"
@@ -149,7 +170,7 @@ class Preferences @Inject constructor(
         const val GOD_MODE = "god-mode"
 
         const val CLIP_MODE = "clip-mode"
-        const val AUTO_REFRESH = "auto-refresh"
+        const val AUTO_REFRESH_CHANNELS = "auto-refresh-channels"
         const val FULL_INFO_PLAYER = "full-info-player"
         const val ROOT_DESTINATION = "root-destination"
         const val NO_PICTURE_MODE = "no-picture-mode"
@@ -169,12 +190,14 @@ class Preferences @Inject constructor(
         const val CLOCK_MODE = "12h-clock-mode"
         const val REMOTE_CONTROL = "remote-control"
 
-        const val PROGRESS = "progress"
+        const val SLIDER = "slider"
         const val ALWAYS_SHOW_REFRESH = "always-show-refresh"
         const val PAGING = "paging"
         const val PLAYER_PANEL = "player_panel"
         const val CACHE = "cache"
         const val RANDOMLY_IN_FAVOURITE = "randomly-in-favourite"
+
+        const val COLORFUL_BACKGROUND = "colorful-background"
     }
 
     init {
